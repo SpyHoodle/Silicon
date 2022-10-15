@@ -26,7 +26,7 @@ fn main() {
 
     let web_options = eframe::WebOptions::default();
     eframe::start_web(
-        "the_canvas_id", // hardcode it
+        "silicon", // hardcode it
         web_options,
         Box::new(|cc| Box::new(eframe_template::SiliconApp::new(cc))),
     )
