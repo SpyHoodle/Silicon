@@ -1,19 +1,9 @@
 use egui::Ui;
 
-#[derive(PartialEq)]
+// #[derive(PartialEq)]
+#[derive(Default)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(default))]
-pub struct Grid {
-
-}
-
-impl Default for Grid {
-    fn default() -> Self {
-        Self {
-
-        }
-    }
-}
+pub struct Grid {}
 
 impl Grid {
     pub fn ui(&mut self, _ui: &mut Ui, ctx: &egui::Context) {

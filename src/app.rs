@@ -42,7 +42,7 @@ impl SiliconApp {
         #[cfg(feature = "persistence")]
         if let Some(storage) = _cc.storage {
             if let Some(state) = eframe::get_value(storage, eframe::APP_KEY) {
-                slf.state = state;
+                silicon_self.state = state;
             }
         }
 
@@ -51,11 +51,9 @@ impl SiliconApp {
 
     fn iter_mut_tabs(&mut self) -> impl Iterator<Item = (&str, &str, &mut dyn eframe::App)> {
         let vec = vec![
-            (
-                "⚒ Grid",
-                "grid",
-                &mut self.state.grid as &mut dyn eframe::App,
-            ),
+            "⚒ Grid",
+            "grid",
+            &mut self.state.grid as &mut dyn eframe::App,
         ];
 
         vec.into_iter()
