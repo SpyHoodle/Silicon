@@ -1,33 +1,27 @@
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
-#[serde(default)] // if we add new fields, give them default values when deserializing old state
+// If we add new fields, give them default values when deserializing old state
+#[serde(default)]
 pub struct SiliconApp {
-    // Example stuff:
-    label: String,
-
-    // this how you opt-out of serialization of a member
+    // Opt-out of serialization
     #[serde(skip)]
-    value: f32,
+    version: String,
 }
 
 impl Default for SiliconApp {
     fn default() -> Self {
         Self {
             // Example stuff:
-            label: "Hello World!".to_owned(),
-            value: 2.7,
+            version: "0.0.1".to_owned(),
         }
     }
 }
 
 impl SiliconApp {
-    /// Called once before the first frame.
+    // Called once before the first frame.
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        // This is also where you can customized the look at feel of egui using
-        // `cc.egui_ctx.set_visuals` and `cc.egui_ctx.set_fonts`.
-
-        // Load previous app state (if any).
-        // Note that you must enable the `persistence` feature for this to work.
+        // Load previous app state (if any)
+        // Note that the `persistence` feature must be enabled
         if let Some(storage) = cc.storage {
             return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
         }
@@ -37,73 +31,86 @@ impl SiliconApp {
 }
 
 impl eframe::App for SiliconApp {
-    /// Called each time the UI needs repainting, which may be many times per second.
-    /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let Self { label, value } = self;
-
-        // Examples of how to create different panels and windows.
-        // Pick whichever suits you.
-        // Tip: a good default choice is to just keep the `CentralPanel`.
-        // For inspiration and more examples, go to https://emilk.github.io/egui
-
-        #[cfg(not(target_arch = "wasm32"))] // no File->Quit on web pages!
+    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        // Top bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            // The top panel is often a good place for a menu bar:
+            // Menu bar
             egui::menu::bar(ui, |ui| {
+                // Theme switcher
+                egui::widgets::global_dark_light_mode_switch(ui);
+
+                // Separator
+                ui.separator();
+
+                // Title
+                ui.label(format!("Silicon v{}", self.version));
+
+                // Separator
+                ui.separator();
+
+                // File menu
                 ui.menu_button("File", |ui| {
+                    if ui.button("New").clicked() {
+                        println!("TODO") // TODO
+                    }
+                    if ui.button("Open...").clicked() {
+                        println!("TODO") // TODO
+                    }
+                    if ui.button("Save...").clicked() {
+                        println!("TODO") // TODO
+                    }
+                    if ui.button("Save as...").clicked() {
+                        println!("TODO") // TODO
+                    }
+                    if ui.button("Reload from disk").clicked() {
+                        println!("TODO") // TODO
+                    }
+
+                    #[cfg(not(target_arch = "wasm32"))] // no File->Quit on web pages!
                     if ui.button("Quit").clicked() {
-                        _frame.close();
+                        frame.close();
                     }
                 });
-            });
-        });
 
-        egui::SidePanel::left("side_panel").show(ctx, |ui| {
-            ui.heading("Side Panel");
+                // Edit menu
+                ui.menu_button("Edit", |ui| {
+                    if ui.button("Preferences").clicked() {
+                        println!("TODO") // TODO
+                    }
+                });
 
-            ui.horizontal(|ui| {
-                ui.label("Write something: ");
-                ui.text_edit_singleline(label);
-            });
+                // Debug menu
+                ui.menu_button("Debug", |ui| {
+                    if ui.button("Organize windows").clicked() {
+                        ui.ctx().memory().reset_areas();
+                        ui.close_menu();
+                    }
+                    if ui.button("Reset egui")
+                        .on_hover_text("Forget scroll, positions, sizes etc")
+                        .clicked()
+                    {
+                        *ui.ctx().memory() = Default::default();
+                        ui.close_menu();
+                    }
+                });
 
-            ui.add(egui::Slider::new(value, 0.0..=10.0).text("value"));
-            if ui.button("Increment").clicked() {
-                *value += 1.0;
-            }
-
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-                ui.horizontal(|ui| {
-                    ui.spacing_mut().item_spacing.x = 0.0;
-                    ui.label("powered by ");
-                    ui.hyperlink_to("egui", "https://github.com/emilk/egui");
-                    ui.label(" and ");
-                    ui.hyperlink_to(
-                        "eframe",
-                        "https://github.com/emilk/egui/tree/master/crates/eframe",
-                    );
-                    ui.label(".");
+                // Add elements to the right of the menu bar
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
+                    // Warn if we're in a debug build
+                    egui::warn_if_debug_build(ui);
                 });
             });
         });
 
+        // Default panel when no file is loaded
         egui::CentralPanel::default().show(ctx, |ui| {
-            // The central panel the region left after adding TopPanel's and SidePanel's
-
-            ui.heading("eframe template");
-            ui.hyperlink("https://github.com/emilk/eframe_template");
-            ui.add(egui::github_link_file!(
-                "https://github.com/emilk/eframe_template/blob/master/",
-                "Source code."
-            ));
-            egui::warn_if_debug_build(ui);
-        });
-
-        egui::Window::new("Window").show(ctx, |ui| {
-            ui.label("Windows can be moved by dragging them.");
-            ui.label("They are automatically sized based on contents.");
-            ui.label("You can turn on resizing and scrolling if you like.");
-            ui.label("You would normally chose either panels OR windows.");
+            ui.vertical_centered_justified(|ui| {
+                ui.heading("Welcome to Silicon.");
+                ui.add(egui::github_link_file!(
+                    "https://github.com/SpyHoodle/silicon",
+                    "The accurate, open-source, rust circuit simulator."
+                ));
+            });
         });
     }
 
