@@ -1,37 +1,80 @@
-/// We derive Deserialize/Serialize so we can persist app state on shutdown.
-#[derive(serde::Deserialize, serde::Serialize)]
-// If we add new fields, give them default values when deserializing old state
-#[serde(default)]
-pub struct SiliconApp {
-    // Opt-out of serialization
-    #[serde(skip)]
-    version: String,
+#[cfg(target_arch = "wasm32")]
+use core::any::Any;
+
+// Grid app
+#[derive(Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct GridApp {
+    grid: crate::tabs::Grid,
 }
 
-impl Default for SiliconApp {
-    fn default() -> Self {
-        Self {
-            // Example stuff:
-            version: "0.0.1".to_owned(),
-        }
+impl eframe::App for GridApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default()
+            .frame(egui::Frame::dark_canvas(&ctx.style()))
+            .show(ctx, |ui| {
+                self.grid
+                    .ui(ui, ctx);
+            });
     }
 }
 
+// Store the state of the program
+#[derive(Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct State {
+    grid: GridApp,
+    selected_tab: String,
+}
+
+pub struct SiliconApp {
+    state: State, // Program state
+    version: String, // Version number
+}
+
 impl SiliconApp {
-    // Called once before the first frame.
-    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        // Load previous app state (if any)
-        // Note that the `persistence` feature must be enabled
-        if let Some(storage) = cc.storage {
-            return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+    pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
+        #[allow(unused_mut)]
+        let mut silicon_self = Self {
+            state: State::default(),
+            version: "0.0.1".to_owned(),
+        };
+
+        #[cfg(feature = "persistence")]
+        if let Some(storage) = _cc.storage {
+            if let Some(state) = eframe::get_value(storage, eframe::APP_KEY) {
+                slf.state = state;
+            }
         }
 
-        Default::default()
+        silicon_self
+    }
+
+    fn iter_mut_tabs(&mut self) -> impl Iterator<Item = (&str, &str, &mut dyn eframe::App)> {
+        let vec = vec![
+            (
+                "⚒ Grid",
+                "grid",
+                &mut self.state.grid as &mut dyn eframe::App,
+            ),
+        ];
+
+        vec.into_iter()
     }
 }
 
 impl eframe::App for SiliconApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        #[cfg(target_arch = "wasm32")]
+        if let Some(anchor) = frame.info().web_info.location.hash.strip_prefix('#') {
+            self.state.selected_tab = anchor.to_owned();
+        }
+
+        if self.state.selected_tab.is_empty() {
+            let selected_tab = self.iter_mut_tabs().next().unwrap().0.to_owned();
+            self.state.selected_tab = selected_tab;
+        }
+
         // Top bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             // Menu bar
@@ -86,7 +129,7 @@ impl eframe::App for SiliconApp {
                         ui.close_menu();
                     }
                     if ui
-                        .button("Reset egui")
+                        .button("Reset gui")
                         .on_hover_text("Forget scroll, positions, sizes etc")
                         .clicked()
                     {
@@ -101,6 +144,11 @@ impl eframe::App for SiliconApp {
                     egui::warn_if_debug_build(ui);
                 });
             });
+
+            ui.horizontal_wrapped(|ui| {
+                ui.visuals_mut().button_frame = false;
+                self.tab_bar_contents(ui, frame);
+            });
         });
 
         // Default panel when no file is loaded
@@ -113,10 +161,49 @@ impl eframe::App for SiliconApp {
                 );
             });
         });
+
+        self.show_selected_tab(ctx, frame);
     }
 
-    /// Called by the frame work to save state before shutdown.
+    #[cfg(target_arch = "wasm32")]
+    fn as_any_mut(&mut self) -> Option<&mut dyn Any> {
+        Some(&mut *self)
+    }
+
+    #[cfg(feature = "persistence")]
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
-        eframe::set_value(storage, eframe::APP_KEY, self);
+        eframe::set_value(storage, eframe::APP_KEY, &self.state);
+    }
+}
+
+impl SiliconApp {
+    fn show_selected_tab(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        let mut found_anchor = false;
+        let selected_anchor = self.state.selected_tab.clone();
+        for (_name, anchor, tab) in self.iter_mut_tabs() {
+            if anchor == selected_anchor || ctx.memory().everything_is_visible() {
+                tab.update(ctx, frame);
+                found_anchor = true;
+            }
+        }
+        if !found_anchor {
+            self.state.selected_tab = "default".into();
+        }
+    }
+
+    fn tab_bar_contents(&mut self, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
+        let mut selected_anchor = self.state.selected_tab.clone();
+        for (name, anchor, _tab) in self.iter_mut_tabs() {
+            if ui
+                .selectable_label(selected_anchor == anchor, name)
+                .clicked()
+            {
+                selected_anchor = anchor.to_owned();
+                if frame.is_web() {
+                    ui.output().open_url(format!("#{}", anchor));
+                }
+            }
+        }
+        self.state.selected_tab = selected_anchor;
     }
 }
