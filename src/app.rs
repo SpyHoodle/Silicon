@@ -1,5 +1,5 @@
-#[cfg(target_arch = "wasm32")]
-use core::any::Any;
+// #[cfg(target_arch = "wasm32")]
+// use core::any::Any;
 
 // Grid app
 #[derive(Default)]
@@ -13,8 +13,7 @@ impl eframe::App for GridApp {
         egui::CentralPanel::default()
             .frame(egui::Frame::dark_canvas(&ctx.style()))
             .show(ctx, |ui| {
-                self.grid
-                    .ui(ui, ctx);
+                self.grid.ui(ui, ctx);
             });
     }
 }
@@ -28,7 +27,7 @@ pub struct State {
 }
 
 pub struct SiliconApp {
-    state: State, // Program state
+    state: State,    // Program state
     version: String, // Version number
 }
 
@@ -165,10 +164,11 @@ impl eframe::App for SiliconApp {
         self.show_selected_tab(ctx, frame);
     }
 
-    #[cfg(target_arch = "wasm32")]
-    fn as_any_mut(&mut self) -> Option<&mut dyn Any> {
-        Some(&mut *self)
-    }
+    // Unsure what this is supposed to do, commented out for now.
+    // #[cfg(target_arch = "wasm32")]
+    // fn as_any_mut(&mut self) -> Option<&mut dyn Any> {
+    //     Some(&mut *self)
+    // }
 
     #[cfg(feature = "persistence")]
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
