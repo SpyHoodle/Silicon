@@ -107,10 +107,10 @@ impl eframe::App for SiliconApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.vertical_centered_justified(|ui| {
                 ui.heading("Welcome to Silicon.");
-                ui.add(egui::github_link_file!(
-                    "https://github.com/SpyHoodle/silicon",
-                    "The accurate, open-source, rust circuit simulator."
-                ));
+                ui.hyperlink_to(
+                    "The accurate, open-source, rust circuit simulator.",
+                    "https://github.com/SpyHoodle/silicon/"
+                );
             });
         });
     }
