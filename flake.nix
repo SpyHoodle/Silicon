@@ -30,6 +30,7 @@
             gdk-pixbuf
             gtk3-x11
             wrapGAppsHook
+            trunk
 
             # WINIT_UNIX_BACKEND=wayland
             wayland
