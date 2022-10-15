@@ -11,7 +11,7 @@ fn main() {
     eframe::run_native(
         "Silicon",
         native_options,
-        Box::new(|cc| Box::new(eframe_template::SiliconApp::new(cc))),
+        Box::new(|cc| Box::new(silicon::SiliconApp::new(cc))),
     );
 }
 
@@ -28,7 +28,7 @@ fn main() {
     eframe::start_web(
         "silicon", // hardcode it
         web_options,
-        Box::new(|cc| Box::new(eframe_template::SiliconApp::new(cc))),
+        Box::new(|cc| Box::new(silicon::SiliconApp::new(cc))),
     )
     .expect("failed to start eframe");
 }
