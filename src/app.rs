@@ -85,7 +85,8 @@ impl eframe::App for SiliconApp {
                         ui.ctx().memory().reset_areas();
                         ui.close_menu();
                     }
-                    if ui.button("Reset egui")
+                    if ui
+                        .button("Reset egui")
                         .on_hover_text("Forget scroll, positions, sizes etc")
                         .clicked()
                     {
