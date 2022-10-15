@@ -50,11 +50,11 @@ impl SiliconApp {
     }
 
     fn iter_mut_tabs(&mut self) -> impl Iterator<Item = (&str, &str, &mut dyn eframe::App)> {
-        let vec = vec![
+        let vec = vec![(
             "⚒ Grid",
             "grid",
             &mut self.state.grid as &mut dyn eframe::App,
-        ];
+        )];
 
         vec.into_iter()
     }
