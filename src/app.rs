@@ -109,7 +109,7 @@ impl eframe::App for SiliconApp {
                 ui.heading("Welcome to Silicon.");
                 ui.hyperlink_to(
                     "The accurate, open-source, rust circuit simulator.",
-                    "https://github.com/SpyHoodle/silicon/"
+                    "https://github.com/SpyHoodle/silicon/",
                 );
             });
         });
